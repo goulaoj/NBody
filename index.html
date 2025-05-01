@@ -5,7 +5,18 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Two Body Problem</title>
   <style>
-    body { margin:0; padding:0; overflow:hidden; }
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #000;
+      color: #fff;             
+    }
+    
+    #simulationCanvas {
+      display: block;
+      background-color: #000; 
+    }    
     canvas { display:block; }
     header {
       position: absolute;
@@ -17,11 +28,11 @@
     header h1 {
       margin: 0;
       font-size: 24px;
-      color: #333;
+      color: #ffffff;
     }
     .controls {
       position:absolute; top:10px; left:10px;
-      background:rgba(145, 180, 245, 0.906);
+      background:rgba(113, 8, 8, 0.906);
       padding:15px; border-radius:6px;
       font-family:sans-serif; font-size:14px;
       max-width: 320px;

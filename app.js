@@ -12,7 +12,12 @@ NBody().then(Module => {
   canvas.style.left     = controlsW + 'px';
   canvas.width  = window.innerWidth  - controlsW;
   canvas.height = window.innerHeight;
-
+  let scale    = 1e6;
+  let isPanning   = false;
+  let panStart    = { x: 0, y: 0 };
+  let mouseStart  = { x: 0, y: 0 };
+  const halfWm = (canvas.width  / 2) * scale;
+  const halfHm = (canvas.height / 2) * scale;
 
   //----------------Sliders------------------
   // default parameters
@@ -33,9 +38,6 @@ NBody().then(Module => {
     'gravity','step'
   ];
 
-  const scale  = 1e6;                  
-  const halfWm = (canvas.width  / 2) * scale;
-  const halfHm = (canvas.height / 2) * scale;
 
   const fixedRanges = {
     posX1:  { min: -halfWm, max:  halfWm, step: halfWm/200 },
@@ -154,14 +156,23 @@ NBody().then(Module => {
   });
 
   resetBtn.addEventListener('click', () => {
-    Object.assign(state, defaults);
-    // update sliders & labels as before…
-    running = false;
-    frame = 0;
-    resetSim();
-    pauseBtn.textContent = 'Pause';
 
+    Object.assign(state, defaults);
+    resetSim();
+  
+    running = false;
+    frame   = 0;
+    pauseBtn.textContent = 'Pause';
+  
     sliderKeys.forEach(syncSlider);
+  
+    scale = 1e6;
+    panX = 0;
+    panY = 0;
+    isPanning = false;
+    dragging  = false;
+    dragIndex = null;
+    canvas.style.cursor = 'default';
   });
 
   function resetSim() {
@@ -182,9 +193,23 @@ NBody().then(Module => {
     return [cx/M, cy/M];
   }
 
+  //----------------Zoom------------------
 
-
+  canvas.addEventListener('wheel', e => {
+    e.preventDefault();
   
+    const zoomFactor = e.deltaY > 0 ? 1.1 : 0.9;
+  
+    const [wxBefore, wyBefore] = screenToWorld(e.offsetX, e.offsetY);
+  
+    scale *= zoomFactor;
+  
+    const [wxAfter, wyAfter] = screenToWorld(e.offsetX, e.offsetY);
+  
+    panX += (wxAfter - wxBefore);
+    panY += (wyAfter - wyBefore);
+  });
+
   //----------------Draw------------------
 
   
@@ -217,7 +242,7 @@ NBody().then(Module => {
       const y = canvas.height/2 - ((pos[i+1] + panY) / scale);
       ctx.beginPath();
       ctx.arc(x, y, 10, 0, 2*Math.PI);
-      ctx.fillStyle = i === 0 ? 'blue' : 'gray';
+      ctx.fillStyle = i === 0 ? 'blue' : 'white';
       ctx.fill();
 
       //follow center of mass
@@ -259,58 +284,82 @@ NBody().then(Module => {
 
   canvas.addEventListener('mousedown', e => {
 
-    const r = canvas.getBoundingClientRect(),
-          mx = e.clientX - r.left,
-          my = e.clientY - r.top,
-          pos = sim.getPositions();
-
-    for (let b=0; b<pos.length/2; b++){
-
-      const [sx,sy] = worldToScreen(pos[2*b], pos[2*b+1]);
-
-      if ((sx-mx)**2 + (sy-my)**2 < bodyRadiusPx**2) {
-        dragging = true; dragIndex = b;
-        running = false; pauseBtn.textContent = 'Resume';
+    const r   = canvas.getBoundingClientRect(),
+    mx  = e.clientX - r.left,
+    my  = e.clientY - r.top,
+    pos = sim.getPositions();
+  
+    for (let b = 0; b < pos.length/2; b++) {
+      const [sx, sy] = worldToScreen(pos[2*b], pos[2*b+1]);
+      if ((sx - mx)**2 + (sy - my)**2 < bodyRadiusPx**2) {
+        dragging   = true;
+        dragIndex  = b;
+        running    = false;
+        pauseBtn.textContent = 'Resume';
         canvas.style.cursor = 'grabbing';
-        break;
+        return;
       }
     }
+  
+    isPanning       = true;
+    mouseStart.x    = e.clientX;
+    mouseStart.y    = e.clientY;
+    panStart.x      = panX;
+    panStart.y      = panY;
+    canvas.style.cursor = 'grab';
   });
 
   canvas.addEventListener('mousemove', e => {
-    if (!dragging) return;
-    const r = canvas.getBoundingClientRect(),
-          mx = e.clientX - r.left,
-          my = e.clientY - r.top,
-          [wx,wy] = screenToWorld(mx,my),
-          i = dragIndex+1;
-    // update state + sliders + sim
-    state[`posX${i}`] = wx;
-    state[`posY${i}`] = wy;
-    document.getElementById(`posX${i}Slider`).value = wx;
-    document.getElementById(`posY${i}Slider`).value = wy;
-    document.getElementById(`posX${i}Value`).innerText = formatNumber(wx);
-    document.getElementById(`posY${i}Value`).innerText = formatNumber(wy);
-    sim.setBody(dragIndex,
-      state[`mass${i}`],
-      wx, wy,
-      state[`velX${i}`],
-      state[`velY${i}`]
-    );
+
+    if (dragging) {
+      const rect = canvas.getBoundingClientRect();
+      const [wx, wy] = screenToWorld(
+        e.clientX - rect.left,
+        e.clientY - rect.top
+      );
+      const i = dragIndex + 1;
+      state[`posX${i}`] = wx;
+      state[`posY${i}`] = wy;
+      document.getElementById(`posX${i}Slider`).value = wx;
+      document.getElementById(`posY${i}Slider`).value = wy;
+      document.getElementById(`posX${i}Value`).innerText = formatNumber(wx);
+      document.getElementById(`posY${i}Value`).innerText = formatNumber(wy);
+      sim.setBody(
+        dragIndex,
+        state[`mass${i}`],
+        wx, wy,
+        state[`velX${i}`],
+        state[`velY${i}`]
+      );
+    }
+    else if (isPanning) {
+
+      const dx = e.clientX - mouseStart.x;
+      const dy = e.clientY - mouseStart.y;
+      panX = panStart.x + dx * scale;
+      panY = panStart.y - dy * scale;
+    }
   });
-  ['mouseup','mouseleave'].forEach(evt=>
-    canvas.addEventListener(evt, _=>{
+
+  ['mouseup','mouseleave'].forEach(evt =>
+    canvas.addEventListener(evt, () => {
+      // if we were dragging a body, stop
       if (dragging) {
-        dragging = false; dragIndex = null;
-        canvas.style.cursor = 'default';
+        dragging  = false;
+        dragIndex = null;
       }
+      // if we were panning the view, stop
+      if (isPanning) {
+        isPanning = false;
+      }
+      // reset cursor
+      canvas.style.cursor = 'default';
     })
   );
 
 
   //----------------Energy------------------
 
- // … earlier, after you declare sim, running, etc. …
 let simTime       = 0;
 let timeData      = [];
 let energyData    = [];
@@ -327,10 +376,9 @@ toggleGraphBtn.addEventListener('click', () => {
   toggleGraphBtn.textContent = recordEnergy ? 'Hide Energy' : 'Show Energy';
 
   if (recordEnergy && !energyChart) {
-    // 📌 capture the very first energy as baseline
+
     initialEnergy = sim.getTotalEnergy();
 
-    // build the small, fixed-size chart
     const ctx2 = energyCanvas.getContext('2d');
     energyChart = new Chart(ctx2, {
       type: 'line',
@@ -366,7 +414,7 @@ toggleGraphBtn.addEventListener('click', () => {
   }
 
   if (!recordEnergy) {
-    // clear for next time
+
     timeData.length   = 0;
     energyData.length = 0;
     simTime = 0;
@@ -378,23 +426,18 @@ toggleGraphBtn.addEventListener('click', () => {
   }
 });
 
-// … inside your loop(), when running …
+
 if (running && recordEnergy) {
   simTime += state.step;
   const E = sim.getTotalEnergy();
   timeData.push(simTime);
   energyData.push(E);
   if (energyChart) {
-    energyChart.update();  // since data was mutated
+    energyChart.update(); 
   }
 }
 
 
-
-
-
-
-  // initial build & loop
   resetSim();
   loop();
 })
