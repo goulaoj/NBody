@@ -342,8 +342,8 @@ NBody().then(Module => {
       ctx.fill();
 
       //follow center of mass
-      const [comX, comY] = centerOfMass(pos, sim.getMasses());
-      ctx.setTransform(scale, 0, 0, scale, canvas.width/2 - scale*comX, canvas.height/2 - scale*comY);
+      //const [comX, comY] = centerOfMass(pos, sim.getMasses());
+      //ctx.setTransform(scale, 0, 0, scale, canvas.width/2 - scale*comX, canvas.height/2 - scale*comY);
     }
 
     // log state every second (≈60 frames)
