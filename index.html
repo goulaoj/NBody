@@ -32,7 +32,7 @@
     }
     .controls {
       position:absolute; top:10px; left:10px;
-      background:rgba(153,83,83,255);
+      background:rgb(125, 106, 218);
       padding:15px; border-radius:6px;
       padding-top: 3px;
       font-family:sans-serif; font-size:14px;
@@ -46,14 +46,14 @@
     .initial-reset-container {
       position: absolute;
       top: 10px;
-      left: 100px;
+      left: 250px;
       width: 320px;
       z-index: 200;              /* above the canvas */
       text-align: center;
     }
     .initial-reset-container button {
-      padding: 6px 12px;
-      /* …same styling as above… */
+      display: block;
+      margin: 4px 0;
     }
     .slider-container { margin-bottom:10px; }
     .slider-label { margin-bottom:4px; display:block; }
@@ -76,6 +76,8 @@
       padding: 8px 12px;
       font-size: 14px;
     }
+
+    
 
 
     button { padding:8px 12px; font-size:14px; margin-right:5px; }
@@ -163,6 +165,8 @@
 
   <div class="initial-reset-container">
     <button id="resetBtn">Reset</button>
+    <button id="followBlueBtn">Follow Blue</button>
+    <button id="followGreyBtn">Follow Grey</button>
   </div>
 
 

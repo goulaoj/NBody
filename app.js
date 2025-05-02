@@ -24,6 +24,7 @@ NBody().then(Module => {
   };
   const halfWm = (canvas.width  / 2) * scale;
   const halfHm = (canvas.height / 2) * scale;
+  let followBody = null; 
 
   //----------------Sliders------------------
   // default parameters
@@ -123,6 +124,8 @@ NBody().then(Module => {
   const resetallBtn = document.getElementById('resetallBtn');
   const centerBtn = document.getElementById('centerBtn');
   const resetBtn = document.getElementById('resetBtn');
+  const followBlueBtn = document.getElementById('followBlueBtn');
+  const followGreyBtn = document.getElementById('followGreyBtn');
 
 
   startBtn.addEventListener('click', () => {
@@ -232,6 +235,32 @@ NBody().then(Module => {
 
   });
 
+  function updateFollowButtons() {
+    if (followBody === 0) {
+      followBlueBtn.textContent = 'Unfollow Blue';
+      followGreyBtn.textContent = 'Follow Grey';
+    } else if (followBody === 1) {
+      followBlueBtn.textContent = 'Follow Blue';
+      followGreyBtn.textContent = 'Unfollow Grey';
+    } else {
+      followBlueBtn.textContent = 'Follow Blue';
+      followGreyBtn.textContent = 'Follow Grey';
+    }
+  }
+
+  updateFollowButtons();
+
+  followBlueBtn.addEventListener('click', () => {
+    followBody = (followBody === 0 ? null : 0);
+    updateFollowButtons();
+
+  });
+  
+  followGreyBtn.addEventListener('click', () => {
+    followBody = (followBody === 1 ? null : 1);
+    updateFollowButtons();
+
+  });
 
   function resetSim() {
     sim = new Module.NBodySimulator();
@@ -291,6 +320,15 @@ NBody().then(Module => {
       }
     }
 
+    if (followBody !== null) {
+      const pos = sim.getPositions();
+      const bx  = pos[2*followBody];
+      const by  = pos[2*followBody + 1];
+      panX = -bx;
+      panY = -by;
+    }
+
+    
     const pos = sim.getPositions();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
