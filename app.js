@@ -16,6 +16,12 @@ NBody().then(Module => {
   let isPanning   = false;
   let panStart    = { x: 0, y: 0 };
   let mouseStart  = { x: 0, y: 0 };
+  let preStartSnapshot = {
+    state: {},
+    scale: scale,
+    panX:   panX,
+    panY:   panY
+  };
   const halfWm = (canvas.width  / 2) * scale;
   const halfHm = (canvas.height / 2) * scale;
 
@@ -92,6 +98,7 @@ NBody().then(Module => {
       }
     });
   });
+
   
   function formatNumber(num) {
     if (Math.abs(num) >= 1e6 || Math.abs(num) <= 1e-6) {
@@ -113,14 +120,24 @@ NBody().then(Module => {
 
   const startBtn = document.getElementById('startBtn');
   const pauseBtn = document.getElementById('pauseBtn');
-  const resetBtn = document.getElementById('resetBtn');
+  const resetallBtn = document.getElementById('resetallBtn');
   const centerBtn = document.getElementById('centerBtn');
+  const resetBtn = document.getElementById('resetBtn');
+
 
   startBtn.addEventListener('click', () => {
     frame = 0;
     running = true;
     pauseBtn.textContent = 'Pause';
 
+    initialScale = scale;
+    initialPanX  = panX;
+    initialPanY  = panY;
+    preStartSnapshot.state = { ...state };
+    preStartSnapshot.scale = scale;
+    preStartSnapshot.panX  = panX;
+    preStartSnapshot.panY  = panY;
+  
     simTime = 0;
     if (recordEnergy && energyChart) {
       timeData.length   = 0;
@@ -155,7 +172,7 @@ NBody().then(Module => {
     panY = -comY;
   });
 
-  resetBtn.addEventListener('click', () => {
+  resetallBtn.addEventListener('click', () => {
 
     Object.assign(state, defaults);
     resetSim();
@@ -174,6 +191,47 @@ NBody().then(Module => {
     dragIndex = null;
     canvas.style.cursor = 'default';
   });
+
+  resetBtn.addEventListener('click', () => {
+
+    const initKeys = [
+      'mass1','posX1','posY1','velX1','velY1',
+      'mass2','posX2','posY2','velX2','velY2'
+    ];
+
+    initKeys.forEach(key => {
+      state[key] = preStartSnapshot.state[key];
+      syncSlider(key);
+
+    });
+
+
+    sim.setBody(
+      0,
+      state.mass1, state.posX1, state.posY1,
+      state.velX1, state.velY1
+    );
+
+    sim.setBody(
+      1,
+      state.mass2, state.posX2, state.posY2,
+      state.velX2, state.velY2
+    );
+
+
+    scale = preStartSnapshot.scale;
+    panX  = preStartSnapshot.panX;
+    panY  = preStartSnapshot.panY;
+  
+    running    = false;
+    pauseBtn.textContent = 'Pause';
+    isPanning  = false;
+    dragging   = false;
+    dragIndex  = null;
+    canvas.style.cursor = 'default';
+
+  });
+
 
   function resetSim() {
     sim = new Module.NBodySimulator();

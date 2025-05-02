@@ -32,10 +32,28 @@
     }
     .controls {
       position:absolute; top:10px; left:10px;
-      background:rgba(113, 8, 8, 0.906);
+      background:rgba(153,83,83,255);
       padding:15px; border-radius:6px;
+      padding-top: 3px;
       font-family:sans-serif; font-size:14px;
       max-width: 320px;
+    }
+
+    .initial-reset-container {
+      text-align: center;
+    }
+    
+    .initial-reset-container {
+      position: absolute;
+      top: 10px;
+      left: 100px;
+      width: 320px;
+      z-index: 200;              /* above the canvas */
+      text-align: center;
+    }
+    .initial-reset-container button {
+      padding: 6px 12px;
+      /* …same styling as above… */
     }
     .slider-container { margin-bottom:10px; }
     .slider-label { margin-bottom:4px; display:block; }
@@ -61,6 +79,8 @@
 
 
     button { padding:8px 12px; font-size:14px; margin-right:5px; }
+
+
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -135,10 +155,14 @@
       <button id="startBtn">Start</button>
       <button id="pauseBtn">Pause</button>
       <button id="centerBtn">Center</button>
-      <button id="resetBtn">Reset</button>
+      <button id="resetallBtn">Reset All</button>
     </div>
   
     <button id="toggleGraphBtn">Show Energy</button>
+  </div>
+
+  <div class="initial-reset-container">
+    <button id="resetBtn">Reset</button>
   </div>
 
 
