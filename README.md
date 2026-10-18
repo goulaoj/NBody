@@ -21,31 +21,19 @@ The live demonstration is configured around the **Kepler two-body problem**, usi
 - **Angular momentum:** Calculates the system's total angular momentum.
 - **Web deployment:** Runs the C++ simulation in the browser through WebAssembly, with a JavaScript interface.
 
+
+
+
+
 ## Physics and numerical methods
 
-For a system of \(N\) bodies, the equations of motion are
+The simulation models a system of gravitationally interacting bodies by numerically integrating Newton's equations of motion.
 
-\[
-\frac{d\mathbf r_i}{dt}=\mathbf v_i,
-\qquad
-\frac{d\mathbf v_i}{dt}
-=
-G\sum_{j\ne i}
-m_j\frac{\mathbf r_j-\mathbf r_i}
-{\left(|\mathbf r_j-\mathbf r_i|^2+\epsilon\right)^{3/2}},
-\]
+The gravitational acceleration of each body is calculated from the positions and masses of the remaining bodies. The equations of motion are integrated using the **fourth-order Runge–Kutta (RK4) method**, a standard numerical method for solving ordinary differential equations.
 
-where \(m_j\) is the mass of body \(j\), \(G\) is the gravitational constant and \(\epsilon\) is a softening parameter used in the numerical force calculation.
+The simulation also calculates the system's total mechanical energy, combining kinetic and gravitational potential energy, as well as its angular momentum. These quantities provide useful diagnostics for studying the system's dynamical evolution and the numerical behaviour of the simulation.
 
-The equations are integrated using the **fourth-order Runge–Kutta method**, a standard numerical method for solving ordinary differential equations.
 
-The implementation also calculates the system's mechanical energy,
-
-\[
-E=T+U,
-\]
-
-and angular momentum, providing quantities that can be used to examine the system's dynamical evolution.
 
 ## Implementation
 
